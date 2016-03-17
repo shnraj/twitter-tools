@@ -38,6 +38,21 @@ def follow_user(user_id=None, screen_name=None):
 # print follow_user(screen_name="thatguyBG")
 
 
+def unfollow_user(user_id=None, screen_name=None):
+    if user_id:
+        data = {"user_id": user_id}
+    if screen_name:
+        data = {"screen_name": screen_name}
+    response = req(
+        url="https://api.twitter.com/1.1/friendships/destroy.json",
+        method="POST",
+        data=data)
+    return json.loads(response)
+
+# Unfollow user
+# print unfollow_user(screen_name="thatguyBG")
+
+
 # Find users who retweeted my medium post
 def find_retweet_users(tweet_id):
     data = {"count": 100, "id": tweet_id, "stringify_ids": "true"}
@@ -58,7 +73,7 @@ def follow_list(user_id_list):
             if "screen_name" in response:
                 s = shelve.open('followed')
                 try:
-                    s[str(user_id)] = {'screen_name': response["screen_name"]}
+                    s[str(user_id)] = {'screen_name': response["screen_name"]} 
                 finally:
                     s.close()
         return get_followed_list()
@@ -72,4 +87,4 @@ def get_followed_list():
         s.close()
     return followed_list
 
-print follow_list([441679284, 2421472752])
+# print follow_list([441679284, 2421472752])
