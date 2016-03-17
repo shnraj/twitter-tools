@@ -2,6 +2,7 @@ import config  # file that contains my API token
 import json
 import oauth2 as oauth
 import oauth2 as urllib
+import shelve
 
 
 def req(url, method, data):
@@ -17,9 +18,9 @@ def req(url, method, data):
     return data
 
 # Get user timeline
-print req(url="https://api.twitter.com/1.1/statuses/user_timeline.json",
-          method="GET",
-          data={"screen_name": "dan_abramov"})
+# print req(url="https://api.twitter.com/1.1/statuses/user_timeline.json",
+#           method="GET",
+#           data={"screen_name": "dan_abramov"})
 
 
 def follow_user(user_id=None, screen_name=None):
@@ -27,13 +28,14 @@ def follow_user(user_id=None, screen_name=None):
         data = {"user_id": user_id}
     if screen_name:
         data = {"screen_name": screen_name}
-    return req(
+    response = req(
         url="https://api.twitter.com/1.1/friendships/create.json",
         method="POST",
         data=data)
+    return json.loads(response)
 
 # Follow user
-print follow_user(screen_name="thatguyBG")
+# print follow_user(screen_name="thatguyBG")
 
 
 # Find users who retweeted my medium post
@@ -45,4 +47,29 @@ def find_retweet_users(tweet_id):
         data=data)
     return json.loads(response)["ids"]
 
-print find_retweet_users(tweet_id=707652131038351360)
+# print find_retweet_users(tweet_id=707652131038351360)
+
+
+# Follow all retweet users add them to a followed list
+def follow_list(user_id_list):
+    if user_id_list:
+        for user_id in user_id_list:
+            response = follow_user(user_id=user_id)
+            if "screen_name" in response:
+                s = shelve.open('followed')
+                try:
+                    s[str(user_id)] = {'screen_name': response["screen_name"]}
+                finally:
+                    s.close()
+        return get_followed_list()
+
+
+def get_followed_list():
+    s = shelve.open('followed')
+    try:
+        followed_list = s.keys()
+    finally:
+        s.close()
+    return followed_list
+
+print follow_list([441679284, 2421472752])
