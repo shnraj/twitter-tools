@@ -65,17 +65,30 @@ def find_retweet_users(tweet_id):
 # print find_retweet_users(tweet_id=707652131038351360)
 
 
+def already_followed(user_id):
+    if user_id:
+        unfollowed_s = shelve.open('unfollowed')
+        try:
+            if str(user_id) in unfollowed_s.keys():
+                return True
+        finally:
+            unfollowed_s.close()
+    return False
+
+
 # Follow all retweet users add them to a followed list
 def follow_list(user_id_list):
     if user_id_list:
         for user_id in user_id_list:
-            response = follow_user(user_id=user_id)
-            if "screen_name" in response:
-                s = shelve.open('followed')
-                try:
-                    s[str(user_id)] = {'screen_name': response["screen_name"]} 
-                finally:
-                    s.close()
+            if not already_followed(user_id):
+                response = follow_user(user_id=user_id)
+                if "screen_name" in response:
+                    s = shelve.open('followed')
+                    try:
+                        s[str(user_id)] = {'screen_name':
+                                           response["screen_name"]}
+                    finally:
+                        s.close()
         return get_followed_list()
 
 
@@ -88,3 +101,33 @@ def get_followed_list():
     return followed_list
 
 # print follow_list([441679284, 2421472752])
+
+
+def get_unfollowed_list():
+    s = shelve.open('unfollowed')
+    try:
+        unfollowed_list = s.keys()
+    finally:
+        s.close()
+    return unfollowed_list
+
+
+def delete_shelve(shelve_name):
+    s = shelve.open(shelve_name)
+    s.clear()
+
+
+# Unfollow all users on followed list and add them to the ufollowed list
+def unfollow_list():
+    user_id_list = get_followed_list()
+    if user_id_list:
+        for user_id in user_id_list:
+            response = unfollow_user(user_id=user_id)
+            if "screen_name" in response:
+                s = shelve.open('unfollowed')
+                try:
+                    s[str(user_id)] = {'screen_name': response["screen_name"]}
+                finally:
+                    s.close()
+        delete_shelve("followed")
+        return get_followed_list()
