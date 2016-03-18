@@ -131,3 +131,14 @@ def unfollow_list():
                     s.close()
         delete_shelve("followed")
         return get_followed_list()
+
+
+def main():
+    user_id_list = find_retweet_users(tweet_id=707652131038351360)
+    print user_id_list
+    followed_list = follow_list(user_id_list)
+    print followed_list
+
+
+if __name__ == "__main__":
+    main()
